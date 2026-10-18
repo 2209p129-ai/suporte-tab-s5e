@@ -1,0 +1,158 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suporte Galaxy Tab S5e</title>
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #15191f;
+  color: white;
+  text-align: center;
+}
+main {
+  max-width: 700px;
+  margin: auto;
+  padding: 24px;
+}
+h1 { color: #72d6ff; }
+.card {
+  background: #242b35;
+  padding: 20px;
+  border-radius: 14px;
+  margin: 18px 0;
+}
+label { display: block; margin: 15px 0 6px; }
+input {
+  width: 90%;
+  max-width: 320px;
+}
+button {
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 8px;
+  background: #72d6ff;
+  color: #101820;
+  font-weight: bold;
+  cursor: pointer;
+}
+canvas {
+  width: 100%;
+  max-width: 500px;
+  background: #0d1117;
+  border-radius: 10px;
+}
+</style>
+</head>
+<body>
+<main>
+<h1>Suporte Galaxy Tab S5e</h1>
+<p>Projeto conceitual para MDF de 6 mm</p>
+
+<div class="card">
+<h2>Visualização do suporte</h2>
+<canvas id="preview" width="500" height="280"></canvas>
+
+<label>Inclinação: <span id="angleText">70°</span></label>
+<input id="angle" type="range" min="20" max="80" value="70">
+
+<label>Largura do suporte (mm)</label>
+<input id="width" type="number" value="230" min="100" max="400">
+
+<label>Profundidade da base (mm)</label>
+<input id="depth" type="number" value="180" min="80" max="350">
+
+<p id="dimensions"></p>
+<button onclick="downloadSVG()">Exportar desenho SVG</button>
+</div>
+
+<div class="card">
+<h2>Componentes previstos</h2>
+<p>• Estrutura em MDF de 6 mm</p>
+<p>• Duas ventoinhas de 120 mm</p>
+<p>• Hub USB na base</p>
+<p>• Passagem de cabos pela esquerda</p>
+</div>
+
+<p>Protótipo conceitual. Confira medidas e encaixes antes de cortar o MDF.</p>
+</main>
+
+<script>
+const canvas = document.getElementById('preview');
+const ctx = canvas.getContext('2d');
+const angle = document.getElementById('angle');
+const width = document.getElementById('width');
+const depth = document.getElementById('depth');
+
+function draw() {
+  const a = Number(angle.value);
+  const w = Math.max(100, Number(width.value) || 230);
+  const d = Math.max(80, Number(depth.value) || 180);
+
+  document.getElementById('angleText').textContent = a + '°';
+  document.getElementById('dimensions').textContent =
+    `Largura: ${w} mm | Base: ${d} mm | MDF: 6 mm`;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = '#72d6ff';
+  ctx.fillStyle = '#263d4d';
+  ctx.lineWidth = 3;
+
+  const rad = a * Math.PI / 180;
+  const bx = 100, by = 225;
+  const bw = 300, bh = 22;
+  ctx.fillRect(bx, by, bw, bh);
+  ctx.strokeRect(bx, by, bw, bh);
+
+  const length = 190;
+  const topX = bx + 70 + Math.cos(rad) * length;
+  const topY = by - Math.sin(rad) * length;
+
+  ctx.save();
+  ctx.translate(bx + 70, by);
+  ctx.rotate(-rad);
+  ctx.fillRect(0, -14, length, 28);
+  ctx.strokeRect(0, -14, length, 28);
+  ctx.restore();
+
+  ctx.fillStyle = '#72d6ff';
+  ctx.beginPath();
+  ctx.arc(250, 100, 30, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(250, 100, 5, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '14px Arial';
+  ctx.fillText(a + '°', 20, 25);
+  ctx.fillText('Vista ilustrativa', 350, 25);
+}
+
+function downloadSVG() {
+  const a = Number(angle.value);
+  const w = Number(width.value) || 230;
+  const d = Number(depth.value) || 180;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}mm" height="${d}mm" viewBox="0 0 ${w} ${d}">
+<rect x="5" y="${d-20}" width="${w-10}" height="15" fill="none" stroke="black"/>
+<text x="5" y="12" font-size="5">Suporte Tab S5e - MDF 6mm - inclinacao ${a} graus</text>
+</svg>`;
+  const blob = new Blob([svg], {type: 'image/svg+xml'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'suporte-tab-s5e.svg';
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+angle.addEventListener('input', draw);
+width.addEventListener('input', draw);
+depth.addEventListener('input', draw);
+draw();
+</script>
+</body>
+</html>
