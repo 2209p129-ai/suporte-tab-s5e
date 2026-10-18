@@ -1,0 +1,111 @@
+
+import FreeCAD as App
+import Part
+import FreeCADGui as Gui
+
+# SUPORTE SAMSUNG GALAXY TAB S5e
+# Unidades em milimetros
+# Modelo conceitual: revisar medidas antes de fabricar.
+
+doc = App.newDocument("Suporte_Tab_S5e")
+
+# Dimensoes principais
+MDF = 6.0
+BASE_LARGURA = 300.0
+BASE_PROFUNDIDADE = 220.0
+PAINEL_LARGURA = 290.0
+PAINEL_ALTURA = 210.0
+DIAMETRO_FAN = 112.0
+DISTANCIA_FANS = 145.0
+
+MADEIRA = (0.72, 0.48, 0.27)
+PRETO = (0.18, 0.19, 0.21)
+TABLET_COR = (0.10, 0.11, 0.13)
+HUB_COR = (0.30, 0.31, 0.33)
+
+def adicionar(nome, forma, cor):
+    obj = doc.addObject("PartDesign::Feature", nome)
+    obj.Shape = forma
+    obj.ViewObject.ShapeColor = cor
+    obj.ViewObject.LineColor = (0.12, 0.12, 0.12)
+    return obj
+
+# 1 - Base em MDF de 6 mm
+base = Part.makeBox(
+    BASE_LARGURA, BASE_PROFUNDIDADE, MDF,
+    App.Vector(-BASE_LARGURA/2, -BASE_PROFUNDIDADE/2, 0)
+)
+adicionar("Base_MDF", base, MADEIRA)
+
+# 2 - Painel traseiro com duas aberturas para as ventoinhas
+painel = Part.makeBox(
+    PAINEL_LARGURA, MDF, PAINEL_ALTURA,
+    App.Vector(-PAINEL_LARGURA/2, -MDF/2, 0)
+)
+
+for x in (-DISTANCIA_FANS/2, DISTANCIA_FANS/2):
+    furo = Part.makeCylinder(
+        DIAMETRO_FAN/2, MDF + 2,
+        App.Vector(x, -MDF/2 - 1, 105),
+        App.Vector(0, 1, 0)
+    )
+    painel = painel.cut(furo)
+
+# Inclina o painel 15 graus para tras da vertical
+painel.rotate(
+    App.Vector(0, 0, 0),
+    App.Vector(1, 0, 0),
+    -15
+)
+painel.translate(App.Vector(0, 55, 6))
+adicionar("Painel_Inclinado", painel, MADEIRA)
+
+# 3 - Borda frontal para apoiar o tablet
+borda = Part.makeBox(
+    280, 12, 18,
+    App.Vector(-140, -101, 6)
+)
+adicionar("Borda_Frontal", borda, MADEIRA)
+
+# 4 - Duas ventoinhas ilustrativas de 120 x 120 x 25 mm
+for i, x in enumerate(
+    (-DISTANCIA_FANS/2, DISTANCIA_FANS/2), 1
+):
+    fan = Part.makeBox(
+        120, 25, 120,
+        App.Vector(x-60, 26, 55)
+    )
+    abertura = Part.makeCylinder(
+        56, 27,
+        App.Vector(x, 25, 115),
+        App.Vector(0, 1, 0)
+    )
+    fan = fan.cut(abertura)
+    adicionar("Ventoinha_%d" % i, fan, PRETO)
+
+# 5 - Hub USB ilustrativo sobre a base
+hub = Part.makeBox(
+    105, 34, 14,
+    App.Vector(-52.5, 35, 6)
+)
+adicionar("Hub_USB_Referencia", hub, HUB_COR)
+
+# 6 - Tablet ilustrativo, apenas para conferir o conjunto
+tablet = Part.makeBox(
+    245, 6, 160,
+    App.Vector(-122.5, 0, 0)
+)
+tablet.rotate(
+    App.Vector(0, 0, 0),
+    App.Vector(1, 0, 0),
+    -15
+)
+tablet.translate(App.Vector(0, 60, 75))
+adicionar("Tablet_Referencia", tablet, TABLET_COR)
+
+doc.recompute()
+Gui.activeDocument().activeView().viewAxonometric()
+Gui.activeDocument().activeView().fitAll()
+
+print("Modelo conceitual criado no FreeCAD.")
+print("Confira todas as medidas antes de fabricar.")
